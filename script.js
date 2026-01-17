@@ -118,7 +118,23 @@ function initVisualEffects() {
         starsContainer.appendChild(star);
     }
 }
-
+// Login функцийн өмнө нэмэх
+function updateUserUI(userData) {
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name');
+    const userAvatar = document.getElementById('user-avatar');
+    
+    if (userInfo) {
+        userInfo.classList.remove('hidden');
+        userName.textContent = userData.name;
+        
+        if (userData.photoURL) {
+            userAvatar.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 24px; height: 24px; border-radius: 50%;">`;
+        } else {
+            userAvatar.textContent = '👤';
+        }
+    }
+}
 // Login Function
 async function login() {
     try {
@@ -238,24 +254,27 @@ function playSound(type) {
 }
 
 // Submit Birth Date
+// submitBirthDate функцийг засах:
 function submitBirthDate() {
     const birthDateInput = document.getElementById('birthdate-input').value;
     
     if (birthDateInput) {
         birthDate = birthDateInput;
         
-        // Update user info in topics page
-        document.getElementById('user-name-topics').textContent = user.name;
+        // user-г localStorage-с авах
+        const savedUser = localStorage.getItem('tarotUser');
+        if (savedUser) {
+            user = JSON.parse(savedUser);
+            document.getElementById('user-name-topics').textContent = user.name;
+        }
         
         // Go to topics page
         showPage('topics-page');
-        
         playSound('success');
     } else {
         alert('Төрсөн өдрөө оруулна уу');
     }
 }
-
 // Select Topic
 function selectTopic(topic) {
     selectedTopic = topic;
