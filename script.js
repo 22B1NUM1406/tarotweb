@@ -1,4 +1,4 @@
-  // Tarot Data with symbols and colors
+// Tarot Data with symbols and colors
 const tarotCards = [
     { id: 0, name: 'The Fool', mongolian: 'Тэнэг', meaning: 'Шинэ эхлэл, боломж, итгэл', symbol: '♈', color: '#FFD700' },
     { id: 1, name: 'The Magician', mongolian: 'Илбэчин', meaning: 'Манифестаци, хүч чадал, шилжилт', symbol: '♊', color: '#4B0082' },
@@ -30,11 +30,41 @@ let user = null;
 let birthDate = '';
 let selectedTopic = '';
 let selectedCards = [];
-let pageHistory = ['home']; // Шинэ: дэлгэцний түүх
+let pageHistory = ['home'];
+
+// Update User UI Function
+function updateUserUI(userData) {
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name');
+    const userAvatar = document.getElementById('user-avatar');
+    
+    if (userInfo && userName && userAvatar) {
+        userInfo.classList.remove('hidden');
+        userName.textContent = userData.name;
+        
+        if (userData.photoURL) {
+            userAvatar.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 24px; height: 24px; border-radius: 50%;">`;
+        } else {
+            userAvatar.textContent = '👤';
+        }
+        
+        // Update other pages
+        document.querySelectorAll('#user-name-topics, #user-name-tarot, #user-name-result').forEach(el => {
+            el.textContent = userData.name;
+        });
+        
+        document.querySelectorAll('#user-avatar-topics, #user-avatar-tarot, #user-avatar-result').forEach(el => {
+            if (userData.photoURL) {
+                el.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 24px; height: 24px; border-radius: 50%;">`;
+            } else {
+                el.textContent = '👤';
+            }
+        });
+    }
+}
 
 // Page Navigation Functions
 function showPage(pageId) {
-    // Дэлгэцний түүхэд нэмэх
     pageHistory.push(pageId);
     
     // Hide all pages
@@ -48,39 +78,28 @@ function showPage(pageId) {
     document.getElementById(pageId).classList.remove('hidden');
     currentPage = pageId;
     
-    // Буцах товч шинэчлэх
     updateBackButton();
 }
 
-// Буцах функц
 function goBack() {
     if (pageHistory.length > 1) {
-        // Одоогийн дэлгэцийг түүхээс хасах
         pageHistory.pop();
-        
-        // Өмнөх дэлгэц рүү буцах
         const previousPage = pageHistory[pageHistory.length - 1];
         
-        // Бүх дэлгэцийг нуух
         document.getElementById('home-page').classList.add('hidden');
         document.getElementById('birthdate-page').classList.add('hidden');
         document.getElementById('topics-page').classList.add('hidden');
         document.getElementById('tarot-page').classList.add('hidden');
         document.getElementById('result-page').classList.add('hidden');
         
-        // Өмнөх дэлгэцийг харуулах
         document.getElementById(previousPage).classList.remove('hidden');
         currentPage = previousPage;
         
-        // Буцах товч шинэчлэх
         updateBackButton();
-        
-        // Дуу тоглуулах
         playSound('card');
     }
 }
 
-// Буцах товчны харагдах байдлыг шинэчлэх
 function updateBackButton() {
     const backButton = document.getElementById('global-back-button');
     if (backButton) {
@@ -94,7 +113,6 @@ function updateBackButton() {
 
 // Initialize Visual Effects
 function initVisualEffects() {
-    // Create particles
     const particlesContainer = document.getElementById('particles');
     for (let i = 0; i < 100; i++) {
         const particle = document.createElement('div');
@@ -105,7 +123,6 @@ function initVisualEffects() {
         particlesContainer.appendChild(particle);
     }
 
-    // Create stars
     const starsContainer = document.getElementById('stars');
     for (let i = 0; i < 200; i++) {
         const star = document.createElement('div');
@@ -118,63 +135,40 @@ function initVisualEffects() {
         starsContainer.appendChild(star);
     }
 }
-// Login функцийн өмнө нэмэх
-function updateUserUI(userData) {
-    const userInfo = document.getElementById('user-info');
-    const userName = document.getElementById('user-name');
-    const userAvatar = document.getElementById('user-avatar');
-    
-    if (userInfo) {
-        userInfo.classList.remove('hidden');
-        userName.textContent = userData.name;
-        
-        if (userData.photoURL) {
-            userAvatar.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 24px; height: 24px; border-radius: 50%;">`;
-        } else {
-            userAvatar.textContent = '👤';
-        }
-    }
-}
+
 // Login Function
 async function login() {
     try {
         document.getElementById('loading').classList.remove('hidden');
         
         const provider = new firebase.auth.FacebookAuthProvider();
+        provider.addScope('email');
+        provider.addScope('public_profile');
+        provider.setCustomParameters({ 'display': 'popup' });
         
-        // GitHub Pages дээр popup ашиглах
-        provider.setCustomParameters({
-            'display': 'popup'
-        });
-        
-        // Popup нээх
         const result = await firebase.auth().signInWithPopup(provider);
-        
-        // Хэрэглэгчийн мэдээлэл
-        const user = result.user;
         const userData = {
-            name: user.displayName || 'Таротын хэрэглэгч',
-            email: user.email || '',
-            photoURL: user.photoURL || '',
-            uid: user.uid
+            name: result.user.displayName || 'Таротын хэрэглэгч',
+            email: result.user.email || '',
+            photoURL: result.user.photoURL || '',
+            uid: result.user.uid
         };
         
-        // LocalStorage дээр хадгалах
+        // Save user globally and locally
+        user = userData;
         localStorage.setItem('tarotUser', JSON.stringify(userData));
         
-        // UI шинэчлэх
+        // Update UI
         updateUserUI(userData);
         
-        // Дараагийн хуудас руу шилжих
+        // Go to next page
         showPage('birthdate-page');
-        
         playSound('success');
         
     } catch (error) {
         console.error('Login алдаа:', error);
         
         let errorMessage = 'Нэвтрэхэд алдаа гарлаа';
-        
         if (error.code === 'auth/popup-closed-by-user') {
             errorMessage = 'Нэвтрэх цонхыг хаасан байна';
         } else if (error.code === 'auth/account-exists-with-different-credential') {
@@ -187,28 +181,6 @@ async function login() {
         
         alert(errorMessage);
         
-        // Алдааны мэдээлэл харуулах
-        const errorDiv = document.createElement('div');
-        errorDiv.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.3);
-            z-index: 10000;
-            max-width: 400px;
-        `;
-        errorDiv.innerHTML = `
-            <h3>Login Алдаа</h3>
-            <p>${errorMessage}</p>
-            <p><small>Код: ${error.code}</small></p>
-            <button onclick="this.parentElement.remove()">Хаах</button>
-        `;
-        document.body.appendChild(errorDiv);
-        
     } finally {
         document.getElementById('loading').classList.add('hidden');
     }
@@ -216,8 +188,7 @@ async function login() {
 
 // Sound effects
 function playSound(type) {
-    if (type === 'success') {
-        // Create a magical sound effect
+    if (type === 'success' || type === 'card') {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
@@ -225,76 +196,56 @@ function playSound(type) {
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
         
-        oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
-        oscillator.frequency.exponentialRampToValueAtTime(1046.50, audioContext.currentTime + 0.5); // C6
-                
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.5);
-    } else if (type === 'card') {
-        // Card flip sound
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-        
-        oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
-        oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.3);
-                
-        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + 0.3);
+        if (type === 'success') {
+            oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1046.50, audioContext.currentTime + 0.5);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.5);
+        } else {
+            oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
     }
 }
 
 // Submit Birth Date
-// submitBirthDate функцийг засах:
 function submitBirthDate() {
     const birthDateInput = document.getElementById('birthdate-input').value;
     
     if (birthDateInput) {
         birthDate = birthDateInput;
         
-        // user-г localStorage-с авах
-        const savedUser = localStorage.getItem('tarotUser');
-        if (savedUser) {
-            user = JSON.parse(savedUser);
-            document.getElementById('user-name-topics').textContent = user.name;
+        // Load user from localStorage if not already loaded
+        if (!user) {
+            const savedUser = localStorage.getItem('tarotUser');
+            if (savedUser) {
+                user = JSON.parse(savedUser);
+                updateUserUI(user);
+            }
         }
         
-        // Go to topics page
         showPage('topics-page');
         playSound('success');
     } else {
         alert('Төрсөн өдрөө оруулна уу');
     }
 }
+
 // Select Topic
 function selectTopic(topic) {
     selectedTopic = topic;
-    
-    // Show loading
     document.getElementById('loading').classList.remove('hidden');
     
     setTimeout(() => {
-        // Update user info in tarot page
-        document.getElementById('user-name-tarot').textContent = user.name;
-        
-        // Generate tarot cards
         generateTarotCards();
-        
-        // Hide loading
         document.getElementById('loading').classList.add('hidden');
-        
-        // Go to tarot page
         showPage('tarot-page');
-        
         playSound('success');
     }, 1000);
 }
@@ -304,10 +255,7 @@ function generateTarotCards() {
     const container = document.getElementById('tarot-cards-container');
     container.innerHTML = '';
     
-    // Shuffle tarot cards
     const shuffledCards = [...tarotCards].sort(() => Math.random() - 0.5);
-    
-    // Take first 22 cards for display
     const cardsToShow = shuffledCards.slice(0, 22);
     
     cardsToShow.forEach((card, index) => {
@@ -331,56 +279,41 @@ function generateTarotCards() {
             <div class="tarot-glow"></div>
         `;
         
-        // Add click event
         cardElement.onclick = () => selectTarotCard(card.id, cardElement);
-        
         container.appendChild(cardElement);
     });
     
-    // Reset selection
     selectedCards = [];
     updateSelectedCount();
 }
 
-// Select Tarot Card
 function selectTarotCard(cardId, cardElement) {
     if (selectedCards.length < 3 && !selectedCards.includes(cardId)) {
-        // Play card sound
         playSound('card');
-        
         selectedCards.push(cardId);
-        
-        // Add flip animation
         cardElement.classList.add('flipped');
         cardElement.classList.add('selected');
-        
         updateSelectedCount();
         
-        // If 3 cards selected, show results after delay
         if (selectedCards.length === 3) {
             setTimeout(showResults, 1500);
         }
     }
 }
 
-// Reset Card Selection
 function resetSelection() {
     selectedCards = [];
-    const cardElements = document.querySelectorAll('.tarot-card');
-    cardElements.forEach(card => {
+    document.querySelectorAll('.tarot-card').forEach(card => {
         card.classList.remove('flipped');
         card.classList.remove('selected');
     });
     updateSelectedCount();
 }
 
-// Update Selected Count
 function updateSelectedCount() {
     const selectedCountElement = document.getElementById('selected-count');
     if (selectedCountElement) {
         selectedCountElement.textContent = `Сонгосон: ${selectedCards.length}/3`;
-        
-        // Add animation
         selectedCountElement.style.transform = 'scale(1.2)';
         setTimeout(() => {
             selectedCountElement.style.transform = 'scale(1)';
@@ -388,30 +321,17 @@ function updateSelectedCount() {
     }
 }
 
-// Show Results
 function showResults() {
-    // Show loading
     document.getElementById('loading').classList.remove('hidden');
     
     setTimeout(() => {
-        // Update user info in result page
-        document.getElementById('user-name-result').textContent = user.name;
-        
-        // Generate result cards
         generateResultCards();
-        
-        // Hide loading
         document.getElementById('loading').classList.add('hidden');
-        
-        // Go to result page
         showPage('result-page');
-        
-        // Play celebration sound
         playSound('success');
     }, 1000);
 }
 
-// Generate Result Cards
 function generateResultCards() {
     const container = document.getElementById('result-cards-container');
     container.innerHTML = '';
@@ -420,7 +340,6 @@ function generateResultCards() {
     
     selectedCards.forEach((cardId, index) => {
         const card = tarotCards.find(c => c.id === cardId);
-        
         const cardElement = document.createElement('div');
         cardElement.className = 'card result-card';
         cardElement.style.animationDelay = `${index * 0.3}s`;
@@ -440,46 +359,37 @@ function generateResultCards() {
     });
 }
 
-// Reset Reading
 function resetReading() {
-    // Show loading
     document.getElementById('loading').classList.remove('hidden');
     
     setTimeout(() => {
         selectedCards = [];
         selectedTopic = '';
-        
-        // Update user info in topics page
-        document.getElementById('user-name-topics').textContent = user.name;
-        
-        // Hide loading
         document.getElementById('loading').classList.add('hidden');
-        
-        // Go to topics page
         showPage('topics-page');
-        
         playSound('success');
     }, 1000);
 }
 
-// Keyboard support for back navigation (optional)
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape' || (event.ctrlKey && event.key === 'z')) {
         goBack();
     }
 });
 
-// Initialize the app
 document.addEventListener('DOMContentLoaded', function() {
-    // Set today's date as default for birthdate input
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('birthdate-input').value = today;
     birthDate = today;
     
-    // Initialize visual effects
-    initVisualEffects();
+    // Check if user is already logged in
+    const savedUser = localStorage.getItem('tarotUser');
+    if (savedUser) {
+        user = JSON.parse(savedUser);
+        updateUserUI(user);
+    }
     
-    // Initialize with home page
+    initVisualEffects();
     setTimeout(() => {
         document.getElementById('loading').classList.add('hidden');
         showPage('home-page');
