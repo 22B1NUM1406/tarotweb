@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мэдээлэл Устгах Заавар - Таротын Мэргэ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            border: 1px solid #fed7aa;
+        }
+        h1 {
+            color: #ea580c;
+            text-align: center;
+            border-bottom: 3px solid #fdba74;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+        .steps-container {
+            counter-reset: step-counter;
+        }
+        .step {
+            background: #fff7ed;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 5px solid #ea580c;
+            position: relative;
+            padding-left: 70px;
+        }
+        .step:before {
+            counter-increment: step-counter;
+            content: counter(step-counter);
+            background: #ea580c;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            position: absolute;
+            left: 15px;
+            top: 20px;
+        }
+        .warning-box {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+        .what-deleted {
+            background: #f0f9ff;
+            border: 2px solid #0ea5e9;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(234, 88, 12, 0.3);
+        }
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(234, 88, 12, 0.4);
+        }
+        .contact-box {
+            background: #f5f3ff;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 20px;
+            }
+            .step {
+                padding-left: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗑️ Өөрийн Мэдээлэл Устгах Заавар</h1>
+        <p style="text-align: center; font-size: 1.1em;">"Таротын Мэргэ" апп дахь таны бүх мэдээллийг бүрэн устгахыг хүсвэл доорх алхмуудыг дагана уу.</p>
+
+        <div class="warning-box">
+            <strong>⚠️ Анхааруулга:</strong> Мэдээлэл устгасны дараа таны бүх тарот уншлагын түүх, хэрэглэгчийн тохиргоо бүрмөсөн устгагдаж, сэргээх боломжгүй болно.
+        </div>
+
+        <div class="steps-container">
+            <div class="step">
+                <h3>Facebook-ийн тохиргоогоор дамжих</h3>
+                <p>Facebook аппын холболтоо зохицуулах хамгийн шууд арга.</p>
+                <ol>
+                    <li>Facebook дээр нэвтрэнэ.</li>
+                    <li><strong>Тохиргоо → Бүртгэл ба Нууцлал → Апп болон Вэбсайт</strong> руу очно.</li>
+                    <li>"Таротын Мэргэ" аппыг олоод <strong>"Устгах"</strong> товчийг дарна.</li>
+                </ol>
+                <p>Энэ нь апп таны Facebook өгөгдөлд хандах эрхийг шууд цуцлах болно.</p>
+            </div>
+
+            <div class="step">
+                <h3>Бидэнтэй шууд холбогдох</h3>
+                <p>Дээрх аргаар дамжих боломжгүй бол эсвэл нэмэлт тусламж хэрэгтэй бол.</p>
+                <p>Дараах мэдээллийг агуулсан имэйлийг <a href="mailto:manal05116@gmail.com">manal05116@gmail.com</a> хаяг руу илгээнэ үү:</p>
+                <ul>
+                    <li><strong>Гарчиг:</strong> Мэдээлэл устгах хүсэлт - Таротын Мэргэ</li>
+                    <li><strong>Таны нэр:</strong> (Facebook дээрх нэр)</li>
+                    <li><strong>Facebook имэйл хаяг:</strong> (Апптай холбогдсон хаяг)</li>
+                    <li><strong>Устгах шалтгаан:</strong> (Сонголтоор)</li>
+                </ul>
+                <p>Бид таны хүсэлтийг баталгаажуулсны дараа 7 хоногийн дотор боловсруулна.</p>
+            </div>
+        </div>
+
+        <div class="what-deleted">
+            <h3>🔍 Юу устгагдах вэ?</h3>
+            <p>Устгах хүсэлт хэрэгжихэд бидний системээс дараах мэдээлэл бүрмөсөн арилна:</p>
+            <ul>
+                <li><strong>Firebase хэрэглэгчийн ID</strong> (Facebook-тай холбогдсон)</li>
+                <li>Апп дотор үүсгэсэн тарот уншлагын бүх түүх</li>
+                <li>Апп дотор хийсэн сонголт, тохиргоо</li>
+            </ul>
+            <p><em>Анхаар:</em> Таны Facebook дээрх үндсэн мэдээлэл (нэр, имэйл) бидний системд хадгалагддаггүй тул устгах шаардлагагүй.</p>
+        </div>
+
+        <div class="contact-box">
+            <h3>❓ Нэмэлт асуух зүйл байвал</h3>
+            <p>Мэдээлэл устгах процессын талаар тодорхойгүй зүйл байвал бидэнтэй холбогдоорой.</p>
+            <p><strong>Холбоо барих имэйл:</strong> <a href="mailto:manal05116@gmail.com">manal05116@gmail.com</a></p>
+            <p>Бид 48 цагийн дотор хариу өгөх болно.</p>
+            
+            <div style="margin-top: 20px;">
+                <a href="privacy.html" class="button">Нууцлалын бодлого руу буцах</a>
+                <a href="index.html" class="button">Үндсэн апп руу буцах</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
