@@ -143,7 +143,7 @@ async function login() {
         document.getElementById('loading').classList.remove('hidden');
         
         const provider = new firebase.auth.FacebookAuthProvider();
-        // provider.addScope('email'); // ← Энэ мөрийг УСТГАХ эсвэл comment хийх
+        
         provider.addScope('public_profile');
         
         console.log('🔵 Firebase popup нээгдэж байна...');
