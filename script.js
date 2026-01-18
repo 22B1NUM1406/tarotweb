@@ -143,61 +143,45 @@ async function login() {
         document.getElementById('loading').classList.remove('hidden');
         
         const provider = new firebase.auth.FacebookAuthProvider();
-        // Зөвхөн public_profile ашиглах
         provider.addScope('public_profile');
         
-        console.log('🔵 Firebase popup нээгдэж байна...');
-        const result = await firebase.auth().signInWithPopup(provider);
-        
-        console.log('✅ Login амжилттай:', result.user);
-        
-        const userData = {
-            name: result.user.displayName || 'Таротын хэрэглэгч',
-            photoURL: result.user.photoURL || '',
-            uid: result.user.uid
-        };
-        
-        user = userData;
-        localStorage.setItem('tarotUser', JSON.stringify(userData));
-        
-        updateUserUI(userData);
-        showPage('birthdate-page');
-        playSound('success');
+        // Popup биш redirect ашиглах
+        await firebase.auth().signInWithRedirect(provider);
         
     } catch (error) {
         console.error('❌ Login алдаа:', error);
-        console.error('Error code:', error.code);
-        console.error('Error message:', error.message);
-        
-        let errorMessage = 'Нэвтрэхэд алдаа гарлаа';
-        
-        switch(error.code) {
-            case 'auth/popup-closed-by-user':
-                errorMessage = 'Нэвтрэх цонхыг хаасан байна. Дахин оролдоно уу.';
-                break;
-            case 'auth/popup-blocked':
-                errorMessage = 'Popup блоклогдсон байна. Browser тохиргооноос popup зөвшөөрнө үү.';
-                break;
-            case 'auth/account-exists-with-different-credential':
-                errorMessage = 'Энэ и-мэйлээр өөр нэвтрэх аргаар бүртгэлтэй байна.';
-                break;
-            case 'auth/unauthorized-domain':
-                errorMessage = 'Энэ domain Firebase-д authorized биш байна. Firebase Console дээр domain нэмнэ үү.';
-                break;
-            case 'auth/operation-not-allowed':
-                errorMessage = 'Facebook login идэвхжээгүй байна. Firebase Console дээр идэвхжүүлнэ үү.';
-                break;
-            default:
-                errorMessage = `Алдаа: ${error.message}`;
-        }
-        
-        alert(errorMessage);
-        
-    } finally {
+        alert('Нэвтрэхэд алдаа гарлаа: ' + error.message);
         document.getElementById('loading').classList.add('hidden');
     }
 }
 
+// Redirect-аас буцаж ирэхэд
+firebase.auth().getRedirectResult()
+    .then((result) => {
+        if (result.user) {
+            console.log('✅ Login амжилттай:', result.user);
+            
+            const userData = {
+                name: result.user.displayName || 'Таротын хэрэглэгч',
+                photoURL: result.user.photoURL || '',
+                uid: result.user.uid
+            };
+            
+            user = userData;
+            localStorage.setItem('tarotUser', JSON.stringify(userData));
+            updateUserUI(userData);
+            showPage('birthdate-page');
+            playSound('success');
+        }
+    })
+    .catch((error) => {
+        console.error('❌ Redirect алдаа:', error);
+    })
+    .finally(() => {
+        document.getElementById('loading').classList.add('hidden');
+    });
+
+    
 // Sound effects
 function playSound(type) {
     if (type === 'success' || type === 'card') {
