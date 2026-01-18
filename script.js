@@ -37,22 +37,17 @@ let pageHistory = ['home'];
 
 // Update User UI Function
 function updateUserUI(userData) {
-    console.log('updateUserUI дуудагдав:', userData);
-    
     const userInfo = document.getElementById('user-info');
     const userName = document.getElementById('user-name');
     const userAvatar = document.getElementById('user-avatar');
     const logoutBtn = document.getElementById('logout-btn');
     const loginButton = document.getElementById('login-button');
     
-    console.log('Элементүүд:', {userInfo, userName, userAvatar, logoutBtn, loginButton});
-    
     if (userData) {
         // Нэвтрэсэн үед
-        if (userInfo && userName && userAvatar) {
-            console.log('Нэвтрэсэн үед UI шинэчлэх');
+        if (userInfo && userName && userAvatar && logoutBtn) {
             userInfo.classList.remove('hidden');
-            if (logoutBtn) logoutBtn.classList.remove('hidden');
+            logoutBtn.classList.remove('hidden');
             userName.textContent = userData.name;
             
             if (userData.photoURL) {
@@ -63,21 +58,40 @@ function updateUserUI(userData) {
             
             // Нэвтрэх товчны логик
             if (loginButton) {
-                console.log('Нэвтрэх товч нуух');
                 loginButton.style.display = 'none';
             }
+            
+            // Бусад хуудасны user info шинэчлэх
+            document.querySelectorAll('#user-name-topics, #user-name-tarot, #user-name-result').forEach(el => {
+                el.textContent = userData.name;
+            });
+            
+            document.querySelectorAll('#user-avatar-topics, #user-avatar-tarot, #user-avatar-result').forEach(el => {
+                if (userData.photoURL) {
+                    el.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 24px; height: 24px; border-radius: 50%;">`;
+                } else {
+                    el.textContent = '👤';
+                }
+            });
         }
     } else {
         // Гараасан үед
-        console.log('Гараасан үед UI шинэчлэх');
         if (userInfo && logoutBtn) {
             userInfo.classList.add('hidden');
             logoutBtn.classList.add('hidden');
             
             if (loginButton) {
-                console.log('Нэвтрэх товч харуулах');
                 loginButton.style.display = 'block';
             }
+            
+            // Бусад хуудасны user info цэвэрлэх
+            document.querySelectorAll('#user-name-topics, #user-name-tarot, #user-name-result').forEach(el => {
+                el.textContent = 'Хэрэглэгч';
+            });
+            
+            document.querySelectorAll('#user-avatar-topics, #user-avatar-tarot, #user-avatar-result').forEach(el => {
+                el.textContent = '👤';
+            });
         }
     }
 }
@@ -399,6 +413,7 @@ document.addEventListener('keydown', function(event) {
 });
 
 // Initialize Facebook SDK
+// Initialize Facebook SDK
 window.fbAsyncInit = function() {
     FB.init({
         appId: FACEBOOK_APP_ID,
@@ -420,7 +435,7 @@ window.fbAsyncInit = function() {
                 
                 user = userData;
                 localStorage.setItem('tarotUser', JSON.stringify(userData));
-                updateUserUI(userData);
+                updateUserUI(userData); // Шинэчлэгдсэн функц дуудах
             });
         } else {
             // Нэвтрээгүй үед user UI-г шинэчлэх
@@ -429,14 +444,7 @@ window.fbAsyncInit = function() {
     });
 };
 
-// Load Facebook SDK
-(function(d, s, id){
-    var js, fjs = d.getElementsByTagName(s)[0];
-    if (d.getElementById(id)) {return;}
-    js = d.createElement(s); js.id = id;
-    js.src = "https://connect.facebook.net/en_US/sdk.js";
-    fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));
+
 
 // Login Function
 function login() {
@@ -472,9 +480,8 @@ function login() {
     }, {scope: 'public_profile'});
 }
 
+// DOM бэлэн үед - ШИНЭЧЛЭХ
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM бэлэн боллоо');
-    
     const today = new Date().toISOString().split('T')[0];
     const birthdateInput = document.getElementById('birthdate-input');
     if (birthdateInput) {
@@ -484,26 +491,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Нэвтрэх товчны эхний төлөв
     const loginButton = document.getElementById('login-button');
-    console.log('Login button:', loginButton);
     
     // Local storage-аас user мэдээлэл татах
     const savedUser = localStorage.getItem('tarotUser');
-    console.log('Saved user from localStorage:', savedUser);
-    
     if (savedUser) {
-        try {
-            user = JSON.parse(savedUser);
-            console.log('User parsed:', user);
-            updateUserUI(user);
-        } catch (e) {
-            console.error('Error parsing saved user:', e);
-            localStorage.removeItem('tarotUser');
-            updateUserUI(null);
-        }
+        user = JSON.parse(savedUser);
+        updateUserUI(user);
     } else {
         // User байхгүй бол login товч харагдана
         if (loginButton) {
-            console.log('User байхгүй, login товч харуулах');
             loginButton.style.display = 'block';
         }
         updateUserUI(null);
