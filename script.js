@@ -139,14 +139,18 @@ function initVisualEffects() {
 // Login Function
 async function login() {
     try {
+        console.log('🔵 Login процесс эхэллээ...');
         document.getElementById('loading').classList.remove('hidden');
         
         const provider = new firebase.auth.FacebookAuthProvider();
-        provider.addScope('email');
+        // provider.addScope('email'); // ← Энэ мөрийг УСТГАХ эсвэл comment хийх
         provider.addScope('public_profile');
-        provider.setCustomParameters({ 'display': 'popup' });
         
+        console.log('🔵 Firebase popup нээгдэж байна...');
         const result = await firebase.auth().signInWithPopup(provider);
+        
+        console.log('✅ Login амжилттай:', result.user);
+        
         const userData = {
             name: result.user.displayName || 'Таротын хэрэглэгч',
             email: result.user.email || '',
@@ -154,29 +158,41 @@ async function login() {
             uid: result.user.uid
         };
         
-        // Save user globally and locally
         user = userData;
         localStorage.setItem('tarotUser', JSON.stringify(userData));
         
-        // Update UI
         updateUserUI(userData);
-        
-        // Go to next page
         showPage('birthdate-page');
         playSound('success');
         
     } catch (error) {
-        console.error('Login алдаа:', error);
+        console.error('❌ Login алдаа:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
         
         let errorMessage = 'Нэвтрэхэд алдаа гарлаа';
-        if (error.code === 'auth/popup-closed-by-user') {
-            errorMessage = 'Нэвтрэх цонхыг хаасан байна';
-        } else if (error.code === 'auth/account-exists-with-different-credential') {
-            errorMessage = 'Энэ и-мэйлээр өөр нэвтрэх аргаар бүртгэлтэй байна';
-        } else if (error.code === 'auth/popup-blocked') {
-            errorMessage = 'Popup блоклогдсон. Popup блоклохыг зогсооно уу';
-        } else if (error.code === 'auth/unauthorized-domain') {
-            errorMessage = 'Энэ домэйн дээр нэвтрэх эрхгүй байна. Домэйн тохируулна уу.';
+        
+        switch(error.code) {
+            case 'auth/popup-closed-by-user':
+                errorMessage = 'Нэвтрэх цонхыг хаасан байна. Дахин оролдоно уу.';
+                break;
+            case 'auth/popup-blocked':
+                errorMessage = 'Popup блоклогдсон байна. Browser тохиргооноос popup зөвшөөрнө үү.';
+                break;
+            case 'auth/account-exists-with-different-credential':
+                errorMessage = 'Энэ и-мэйлээр өөр нэвтрэх аргаар бүртгэлтэй байна.';
+                break;
+            case 'auth/unauthorized-domain':
+                errorMessage = 'Энэ domain Firebase-д authorized биш байна. Firebase Console дээр domain нэмнэ үү.';
+                break;
+            case 'auth/operation-not-allowed':
+                errorMessage = 'Facebook login идэвхжээгүй байна. Firebase Console дээр идэвхжүүлнэ үү.';
+                break;
+            case 'auth/invalid-api-key':
+                errorMessage = 'Firebase API key буруу байна.';
+                break;
+            default:
+                errorMessage = `Алдаа: ${error.message}`;
         }
         
         alert(errorMessage);
@@ -185,7 +201,6 @@ async function login() {
         document.getElementById('loading').classList.add('hidden');
     }
 }
-
 // Sound effects
 function playSound(type) {
     if (type === 'success' || type === 'card') {
