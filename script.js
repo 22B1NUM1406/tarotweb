@@ -25,7 +25,7 @@ const tarotCards = [
 ];
 
 // Facebook App ID - ӨӨРИЙНХӨӨ APP ID ОРУУЛАХ
-const FACEBOOK_APP_ID = '2436485836794332'; 
+const FACEBOOK_APP_ID = '2436485836794332'; // ← ЭНД СОЛИХ!
 
 // App State
 let currentPage = 'home';
@@ -35,120 +35,107 @@ let selectedTopic = '';
 let selectedCards = [];
 let pageHistory = ['home'];
 
+// Initialize Facebook SDK
+window.fbAsyncInit = function() {
+    FB.init({
+        appId: FACEBOOK_APP_ID,
+        cookie: true,
+        xfbml: true,
+        version: 'v18.0'
+    });
+
+    FB.getLoginStatus(function(response) {
+        if (response.status === 'connected') {
+            console.log('✅ User аль хэдийн нэвтэрсэн байна');
+            
+            FB.api('/me', {fields: 'id,name,picture'}, function(userInfo) {
+                const userData = {
+                    name: userInfo.name || 'Таротын хэрэглэгч',
+                    photoURL: userInfo.picture?.data?.url || '',
+                    uid: userInfo.id
+                };
+                
+                user = userData;
+                localStorage.setItem('tarotUser', JSON.stringify(userData));
+                updateUserUI(userData);
+            });
+        }
+    });
+};
+
+// Load Facebook SDK
+(function(d, s, id){
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {return;}
+    js = d.createElement(s); js.id = id;
+    js.src = "https://connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+
+// Login Function
+function login() {
+    console.log('🔵 Login процесс эхэллээ...');
+    document.getElementById('loading').classList.remove('hidden');
+    
+    FB.login(function(response) {
+        if (response.authResponse) {
+            console.log('✅ Facebook login амжилттай');
+            
+            FB.api('/me', {fields: 'id,name,picture'}, function(userInfo) {
+                console.log('✅ User info авлаа:', userInfo);
+                
+                const userData = {
+                    name: userInfo.name || 'Таротын хэрэглэгч',
+                    photoURL: userInfo.picture?.data?.url || '',
+                    uid: userInfo.id
+                };
+                
+                user = userData;
+                localStorage.setItem('tarotUser', JSON.stringify(userData));
+                
+                updateUserUI(userData);
+                document.getElementById('loading').classList.add('hidden');
+                showPage('birthdate-page');
+                playSound('success');
+            });
+        } else {
+            console.log('❌ User цуцлав');
+            document.getElementById('loading').classList.add('hidden');
+            alert('Facebook нэвтрэлтийг цуцалсан байна');
+        }
+    }, {scope: 'public_profile'});
+}
+
 // Update User UI Function
 function updateUserUI(userData) {
     const userInfo = document.getElementById('user-info');
     const userName = document.getElementById('user-name');
     const userAvatar = document.getElementById('user-avatar');
-    const logoutBtn = document.getElementById('logout-btn');
-    const loginButton = document.getElementById('login-button');
     
-    if (userData) {
-        // Нэвтрэсэн үед
-        if (userInfo && userName && userAvatar && logoutBtn) {
-            userInfo.classList.remove('hidden');
-            logoutBtn.classList.remove('hidden');
-            userName.textContent = userData.name;
-            
-            if (userData.photoURL) {
-                userAvatar.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 32px; height: 32px; border-radius: 50%;">`;
-            } else {
-                userAvatar.textContent = '👤';
-            }
-            
-            // Нэвтрэх товчны логик
-            if (loginButton) {
-                loginButton.style.display = 'none';
-            }
-            
-            // Бусад хуудасны user info шинэчлэх
-            document.querySelectorAll('#user-name-topics, #user-name-tarot, #user-name-result').forEach(el => {
-                el.textContent = userData.name;
-            });
-            
-            document.querySelectorAll('#user-avatar-topics, #user-avatar-tarot, #user-avatar-result').forEach(el => {
-                if (userData.photoURL) {
-                    el.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 24px; height: 24px; border-radius: 50%;">`;
-                } else {
-                    el.textContent = '👤';
-                }
-            });
-        }
-    } else {
-        // Гараасан үед
-        if (userInfo && logoutBtn) {
-            userInfo.classList.add('hidden');
-            logoutBtn.classList.add('hidden');
-            
-            if (loginButton) {
-                loginButton.style.display = 'block';
-            }
-            
-            // Бусад хуудасны user info цэвэрлэх
-            document.querySelectorAll('#user-name-topics, #user-name-tarot, #user-name-result').forEach(el => {
-                el.textContent = 'Хэрэглэгч';
-            });
-            
-            document.querySelectorAll('#user-avatar-topics, #user-avatar-tarot, #user-avatar-result').forEach(el => {
-                el.textContent = '👤';
-            });
-        }
-    }
-}
-// Logout Function
-function logout() {
-    console.log('Logout дуудагдав');
-    if (confirm('Та системээс гарахдаа итгэлтэй байна уу?')) {
-        document.getElementById('loading').classList.remove('hidden');
+    if (userInfo && userName && userAvatar) {
+        userInfo.classList.remove('hidden');
+        userName.textContent = userData.name;
         
-        // Facebook logout хийнэ
-        FB.getLoginStatus(function(response) {
-            if (response.status === 'connected') {
-                console.log('Facebook-аар нэвтэрсэн байна, logout хийх');
-                FB.logout(function(logoutResponse) {
-                    console.log('✅ User гарлаа');
-                    
-                    // App state шинэчлэх
-                    user = null;
-                    birthDate = '';
-                    selectedTopic = '';
-                    selectedCards = [];
-                    
-                    // Local storage цэвэрлэх
-                    localStorage.removeItem('tarotUser');
-                    
-                    // UI шинэчлэх
-                    updateUserUI(null);
-                    
-                    // Нүүр хуудас руу буцах
-                    pageHistory = ['home'];
-                    document.getElementById('loading').classList.add('hidden');
-                    showPage('home-page');
-                    playSound('success');
-                    
-                    alert('Та амжилттай гарлаа.');
-                });
+        if (userData.photoURL) {
+            userAvatar.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 24px; height: 24px; border-radius: 50%;">`;
+        } else {
+            userAvatar.textContent = '👤';
+        }
+        
+        document.querySelectorAll('#user-name-topics, #user-name-tarot, #user-name-result').forEach(el => {
+            el.textContent = userData.name;
+        });
+        
+        document.querySelectorAll('#user-avatar-topics, #user-avatar-tarot, #user-avatar-result').forEach(el => {
+            if (userData.photoURL) {
+                el.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 24px; height: 24px; border-radius: 50%;">`;
             } else {
-                console.log('Facebook-аар нэвтрээгүй, зөвхөн app-аас гарах');
-                // Facebook-аар нэвтрээгүй бол зөвхөн app-аас гарах
-                user = null;
-                birthDate = '';
-                selectedTopic = '';
-                selectedCards = [];
-                
-                localStorage.removeItem('tarotUser');
-                updateUserUI(null);
-                
-                pageHistory = ['home'];
-                document.getElementById('loading').classList.add('hidden');
-                showPage('home-page');
-                playSound('success');
-                
-                alert('Та амжилттай гарлаа.');
+                el.textContent = '👤';
             }
         });
     }
 }
+
 // Page Navigation Functions
 function showPage(pageId) {
     pageHistory.push(pageId);
@@ -412,75 +399,6 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// Initialize Facebook SDK
-// Initialize Facebook SDK
-window.fbAsyncInit = function() {
-    FB.init({
-        appId: FACEBOOK_APP_ID,
-        cookie: true,
-        xfbml: true,
-        version: 'v18.0'
-    });
-
-    FB.getLoginStatus(function(response) {
-        if (response.status === 'connected') {
-            console.log('✅ User аль хэдийн нэвтэрсэн байна');
-            
-            FB.api('/me', {fields: 'id,name,picture'}, function(userInfo) {
-                const userData = {
-                    name: userInfo.name || 'Таротын хэрэглэгч',
-                    photoURL: userInfo.picture?.data?.url || '',
-                    uid: userInfo.id
-                };
-                
-                user = userData;
-                localStorage.setItem('tarotUser', JSON.stringify(userData));
-                updateUserUI(userData); // Шинэчлэгдсэн функц дуудах
-            });
-        } else {
-            // Нэвтрээгүй үед user UI-г шинэчлэх
-            updateUserUI(null);
-        }
-    });
-};
-
-
-
-// Login Function
-function login() {
-    console.log('🔵 Login процесс эхэллээ...');
-    document.getElementById('loading').classList.remove('hidden');
-    
-    FB.login(function(response) {
-        if (response.authResponse) {
-            console.log('✅ Facebook login амжилттай');
-            
-            FB.api('/me', {fields: 'id,name,picture'}, function(userInfo) {
-                console.log('✅ User info авлаа:', userInfo);
-                
-                const userData = {
-                    name: userInfo.name || 'Таротын хэрэглэгч',
-                    photoURL: userInfo.picture?.data?.url || '',
-                    uid: userInfo.id
-                };
-                
-                user = userData;
-                localStorage.setItem('tarotUser', JSON.stringify(userData));
-                
-                updateUserUI(userData);
-                document.getElementById('loading').classList.add('hidden');
-                showPage('birthdate-page');
-                playSound('success');
-            });
-        } else {
-            console.log('❌ User цуцлав');
-            document.getElementById('loading').classList.add('hidden');
-            alert('Facebook нэвтрэлтийг цуцалсан байна');
-        }
-    }, {scope: 'public_profile'});
-}
-
-// DOM бэлэн үед - ШИНЭЧЛЭХ
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
     const birthdateInput = document.getElementById('birthdate-input');
@@ -489,20 +407,10 @@ document.addEventListener('DOMContentLoaded', function() {
         birthDate = today;
     }
     
-    // Нэвтрэх товчны эхний төлөв
-    const loginButton = document.getElementById('login-button');
-    
-    // Local storage-аас user мэдээлэл татах
     const savedUser = localStorage.getItem('tarotUser');
     if (savedUser) {
         user = JSON.parse(savedUser);
         updateUserUI(user);
-    } else {
-        // User байхгүй бол login товч харагдана
-        if (loginButton) {
-            loginButton.style.display = 'block';
-        }
-        updateUserUI(null);
     }
     
     initVisualEffects();
