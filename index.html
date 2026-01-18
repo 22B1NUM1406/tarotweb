@@ -356,19 +356,29 @@
             </div>
         </section>
     </div>
-<script>
-        const firebaseConfig = {
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
     apiKey: "AIzaSyDW-dNxxhMIBphKPX2xIKE0qsO1puyxwN0",
-    authDomain: "tarot-mongolia.firebaseapp.com", // Энэ хэвээрээ
+    authDomain: "tarot-mongolia.firebaseapp.com",
     projectId: "tarot-mongolia",
     storageBucket: "tarot-mongolia.firebasestorage.app",
     messagingSenderId: "84218992471",
     appId: "1:84218992471:web:c5e3464fa8262d39a4d012",
     measurementId: "G-FVX95LELB3"
-};
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-    </script>
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
 <script src="script.js"></script>
 
 </body>
