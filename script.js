@@ -37,15 +37,20 @@ let pageHistory = ['home'];
 
 // Update User UI Function
 function updateUserUI(userData) {
+    console.log('updateUserUI дуудагдав:', userData);
+    
     const userInfo = document.getElementById('user-info');
     const userName = document.getElementById('user-name');
     const userAvatar = document.getElementById('user-avatar');
     const logoutBtn = document.getElementById('logout-btn');
     const loginButton = document.getElementById('login-button');
     
+    console.log('Элементүүд:', {userInfo, userName, userAvatar, logoutBtn, loginButton});
+    
     if (userData) {
         // Нэвтрэсэн үед
         if (userInfo && userName && userAvatar) {
+            console.log('Нэвтрэсэн үед UI шинэчлэх');
             userInfo.classList.remove('hidden');
             if (logoutBtn) logoutBtn.classList.remove('hidden');
             userName.textContent = userData.name;
@@ -58,52 +63,34 @@ function updateUserUI(userData) {
             
             // Нэвтрэх товчны логик
             if (loginButton) {
+                console.log('Нэвтрэх товч нуух');
                 loginButton.style.display = 'none';
             }
-            
-            // Бусад хуудасны user info шинэчлэх
-            document.querySelectorAll('#user-name-topics, #user-name-tarot, #user-name-result').forEach(el => {
-                el.textContent = userData.name;
-            });
-            
-            document.querySelectorAll('#user-avatar-topics, #user-avatar-tarot, #user-avatar-result').forEach(el => {
-                if (userData.photoURL) {
-                    el.innerHTML = `<img src="${userData.photoURL}" alt="User" style="width: 24px; height: 24px; border-radius: 50%;">`;
-                } else {
-                    el.textContent = '👤';
-                }
-            });
         }
     } else {
         // Гараасан үед
+        console.log('Гараасан үед UI шинэчлэх');
         if (userInfo && logoutBtn) {
             userInfo.classList.add('hidden');
             logoutBtn.classList.add('hidden');
             
             if (loginButton) {
+                console.log('Нэвтрэх товч харуулах');
                 loginButton.style.display = 'block';
             }
-            
-            // Бусад хуудасны user info цэвэрлэх
-            document.querySelectorAll('#user-name-topics, #user-name-tarot, #user-name-result').forEach(el => {
-                el.textContent = 'Хэрэглэгч';
-            });
-            
-            document.querySelectorAll('#user-avatar-topics, #user-avatar-tarot, #user-avatar-result').forEach(el => {
-                el.textContent = '👤';
-            });
         }
     }
 }
-
 // Logout Function
 function logout() {
+    console.log('Logout дуудагдав');
     if (confirm('Та системээс гарахдаа итгэлтэй байна уу?')) {
         document.getElementById('loading').classList.remove('hidden');
         
         // Facebook logout хийнэ
         FB.getLoginStatus(function(response) {
             if (response.status === 'connected') {
+                console.log('Facebook-аар нэвтэрсэн байна, logout хийх');
                 FB.logout(function(logoutResponse) {
                     console.log('✅ User гарлаа');
                     
@@ -128,6 +115,7 @@ function logout() {
                     alert('Та амжилттай гарлаа.');
                 });
             } else {
+                console.log('Facebook-аар нэвтрээгүй, зөвхөн app-аас гарах');
                 // Facebook-аар нэвтрээгүй бол зөвхөн app-аас гарах
                 user = null;
                 birthDate = '';
@@ -147,7 +135,6 @@ function logout() {
         });
     }
 }
-
 // Page Navigation Functions
 function showPage(pageId) {
     pageHistory.push(pageId);
@@ -485,8 +472,9 @@ function login() {
     }, {scope: 'public_profile'});
 }
 
-// DOM бэлэн үед
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM бэлэн боллоо');
+    
     const today = new Date().toISOString().split('T')[0];
     const birthdateInput = document.getElementById('birthdate-input');
     if (birthdateInput) {
@@ -496,12 +484,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Нэвтрэх товчны эхний төлөв
     const loginButton = document.getElementById('login-button');
+    console.log('Login button:', loginButton);
     
     // Local storage-аас user мэдээлэл татах
     const savedUser = localStorage.getItem('tarotUser');
+    console.log('Saved user from localStorage:', savedUser);
+    
     if (savedUser) {
         try {
             user = JSON.parse(savedUser);
+            console.log('User parsed:', user);
             updateUserUI(user);
         } catch (e) {
             console.error('Error parsing saved user:', e);
@@ -511,6 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         // User байхгүй бол login товч харагдана
         if (loginButton) {
+            console.log('User байхгүй, login товч харуулах');
             loginButton.style.display = 'block';
         }
         updateUserUI(null);
