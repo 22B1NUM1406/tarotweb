@@ -142,7 +142,7 @@ async function login() {
         document.getElementById('loading').classList.remove('hidden');
         
         const provider = new firebase.auth.FacebookAuthProvider();
-        provider.addScope('email');
+        
         provider.addScope('public_profile');
         provider.setCustomParameters({ 'display': 'popup' });
         
