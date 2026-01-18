@@ -143,7 +143,7 @@ async function login() {
         document.getElementById('loading').classList.remove('hidden');
         
         const provider = new firebase.auth.FacebookAuthProvider();
-        
+        // Зөвхөн public_profile ашиглах
         provider.addScope('public_profile');
         
         console.log('🔵 Firebase popup нээгдэж байна...');
@@ -153,7 +153,6 @@ async function login() {
         
         const userData = {
             name: result.user.displayName || 'Таротын хэрэглэгч',
-            email: result.user.email || '',
             photoURL: result.user.photoURL || '',
             uid: result.user.uid
         };
@@ -188,9 +187,6 @@ async function login() {
             case 'auth/operation-not-allowed':
                 errorMessage = 'Facebook login идэвхжээгүй байна. Firebase Console дээр идэвхжүүлнэ үү.';
                 break;
-            case 'auth/invalid-api-key':
-                errorMessage = 'Firebase API key буруу байна.';
-                break;
             default:
                 errorMessage = `Алдаа: ${error.message}`;
         }
@@ -201,6 +197,7 @@ async function login() {
         document.getElementById('loading').classList.add('hidden');
     }
 }
+
 // Sound effects
 function playSound(type) {
     if (type === 'success' || type === 'card') {
