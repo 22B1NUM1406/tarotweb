@@ -24,6 +24,9 @@ const tarotCards = [
     { id: 21, name: 'The World', mongolian: 'Дэлхий', meaning: 'Дуусгал, бүрэн байдал, амжилт', symbol: '🌍', color: '#228B22' }
 ];
 
+// Facebook App ID - ӨӨРИЙНХӨӨ APP ID ОРУУЛАХ
+const FACEBOOK_APP_ID = '2436485836794332'; // ← ЭНД СОЛИХ!
+
 // App State
 let currentPage = 'home';
 let user = null;
@@ -31,6 +34,77 @@ let birthDate = '';
 let selectedTopic = '';
 let selectedCards = [];
 let pageHistory = ['home'];
+
+// Initialize Facebook SDK
+window.fbAsyncInit = function() {
+    FB.init({
+        appId: FACEBOOK_APP_ID,
+        cookie: true,
+        xfbml: true,
+        version: 'v18.0'
+    });
+
+    FB.getLoginStatus(function(response) {
+        if (response.status === 'connected') {
+            console.log('✅ User аль хэдийн нэвтэрсэн байна');
+            
+            FB.api('/me', {fields: 'id,name,picture'}, function(userInfo) {
+                const userData = {
+                    name: userInfo.name || 'Таротын хэрэглэгч',
+                    photoURL: userInfo.picture?.data?.url || '',
+                    uid: userInfo.id
+                };
+                
+                user = userData;
+                localStorage.setItem('tarotUser', JSON.stringify(userData));
+                updateUserUI(userData);
+            });
+        }
+    });
+};
+
+// Load Facebook SDK
+(function(d, s, id){
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {return;}
+    js = d.createElement(s); js.id = id;
+    js.src = "https://connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+
+// Login Function
+function login() {
+    console.log('🔵 Login процесс эхэллээ...');
+    document.getElementById('loading').classList.remove('hidden');
+    
+    FB.login(function(response) {
+        if (response.authResponse) {
+            console.log('✅ Facebook login амжилттай');
+            
+            FB.api('/me', {fields: 'id,name,picture'}, function(userInfo) {
+                console.log('✅ User info авлаа:', userInfo);
+                
+                const userData = {
+                    name: userInfo.name || 'Таротын хэрэглэгч',
+                    photoURL: userInfo.picture?.data?.url || '',
+                    uid: userInfo.id
+                };
+                
+                user = userData;
+                localStorage.setItem('tarotUser', JSON.stringify(userData));
+                
+                updateUserUI(userData);
+                document.getElementById('loading').classList.add('hidden');
+                showPage('birthdate-page');
+                playSound('success');
+            });
+        } else {
+            console.log('❌ User цуцлав');
+            document.getElementById('loading').classList.add('hidden');
+            alert('Facebook нэвтрэлтийг цуцалсан байна');
+        }
+    }, {scope: 'public_profile'});
+}
 
 // Update User UI Function
 function updateUserUI(userData) {
@@ -48,7 +122,6 @@ function updateUserUI(userData) {
             userAvatar.textContent = '👤';
         }
         
-        // Update other pages
         document.querySelectorAll('#user-name-topics, #user-name-tarot, #user-name-result').forEach(el => {
             el.textContent = userData.name;
         });
@@ -67,14 +140,12 @@ function updateUserUI(userData) {
 function showPage(pageId) {
     pageHistory.push(pageId);
     
-    // Hide all pages
     document.getElementById('home-page').classList.add('hidden');
     document.getElementById('birthdate-page').classList.add('hidden');
     document.getElementById('topics-page').classList.add('hidden');
     document.getElementById('tarot-page').classList.add('hidden');
     document.getElementById('result-page').classList.add('hidden');
     
-    // Show the requested page
     document.getElementById(pageId).classList.remove('hidden');
     currentPage = pageId;
     
@@ -136,55 +207,9 @@ function initVisualEffects() {
     }
 }
 
-// Login Function
-async function login() {
-    try {
-        console.log('🔵 Login процесс эхэллээ...');
-        document.getElementById('loading').classList.remove('hidden');
-        
-        const provider = new firebase.auth.FacebookAuthProvider();
-        provider.addScope('public_profile');
-        
-        // Popup биш redirect ашиглах
-        await firebase.auth().signInWithRedirect(provider);
-        
-    } catch (error) {
-        console.error('❌ Login алдаа:', error);
-        alert('Нэвтрэхэд алдаа гарлаа: ' + error.message);
-        document.getElementById('loading').classList.add('hidden');
-    }
-}
-
-// Redirect-аас буцаж ирэхэд
-firebase.auth().getRedirectResult()
-    .then((result) => {
-        if (result.user) {
-            console.log('✅ Login амжилттай:', result.user);
-            
-            const userData = {
-                name: result.user.displayName || 'Таротын хэрэглэгч',
-                photoURL: result.user.photoURL || '',
-                uid: result.user.uid
-            };
-            
-            user = userData;
-            localStorage.setItem('tarotUser', JSON.stringify(userData));
-            updateUserUI(userData);
-            showPage('birthdate-page');
-            playSound('success');
-        }
-    })
-    .catch((error) => {
-        console.error('❌ Redirect алдаа:', error);
-    })
-    .finally(() => {
-        document.getElementById('loading').classList.add('hidden');
-    });
-
-    
 // Sound effects
 function playSound(type) {
-    if (type === 'success' || type === 'card') {
+    try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
@@ -207,6 +232,8 @@ function playSound(type) {
             oscillator.start();
             oscillator.stop(audioContext.currentTime + 0.3);
         }
+    } catch (error) {
+        console.log('Audio context error:', error);
     }
 }
 
@@ -217,7 +244,6 @@ function submitBirthDate() {
     if (birthDateInput) {
         birthDate = birthDateInput;
         
-        // Load user from localStorage if not already loaded
         if (!user) {
             const savedUser = localStorage.getItem('tarotUser');
             if (savedUser) {
@@ -375,10 +401,12 @@ document.addEventListener('keydown', function(event) {
 
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('birthdate-input').value = today;
-    birthDate = today;
+    const birthdateInput = document.getElementById('birthdate-input');
+    if (birthdateInput) {
+        birthdateInput.value = today;
+        birthDate = today;
+    }
     
-    // Check if user is already logged in
     const savedUser = localStorage.getItem('tarotUser');
     if (savedUser) {
         user = JSON.parse(savedUser);
