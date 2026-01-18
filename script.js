@@ -25,7 +25,7 @@ const tarotCards = [
 ];
 
 // Facebook App ID - ӨӨРИЙНХӨӨ APP ID ОРУУЛАХ
-const FACEBOOK_APP_ID = '2436485836794332'; // ← ЭНД СОЛИХ!
+const FACEBOOK_APP_ID = '2436485836794332'; 
 
 // App State
 let currentPage = 'home';
